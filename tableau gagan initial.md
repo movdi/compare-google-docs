@@ -34,18 +34,23 @@ The collector catalogs the following information.
 | Object | Information cataloged |
 | ----- | ----- |
 | Databases | Name, Identifier, Description, Database Connection Type |
+| Database Schemas | Name, Identifier |
 | Database tables | Name, Identifier |
 | Database columns | Name, Identifier |
+| Tableau Databases | Name, Identifier, Connection Type |
+| Tableau Database tables | Name, Identifier, Connection Type |
+| Tableau Database columns | Name, Identifier |
 | Projects | Name, Description |
 | Workbooks | Name, Description, Creator Email, Creator Name, Creator Tableau User, Preview Image, and Workbook URL **Note:** Unpublished workbooks are not harvested. This is because the Tableau REST APIs do not return the objects if they are not published. |
-| Dashboards | Name, Creator Email, Creator Name, Creator Tableau User, Preview Image, and Dashboard URL **Note:** Unpublished dashboard are not harvested. This is because the Tableau REST APIs do not return the objects if they are not published. |
+| Dashboards | Name, Creator Email, Creator Name, Creator Tableau User, Preview Image, Dashboard URL, Number of Favorites, and Number of Views **Note:** Unpublished dashboard are not harvested. This is because the Tableau REST APIs do not return the objects if they are not published. |
 | Views | Name, Creator Email, Creator Name, Creator Tableau User, Number of Views, Number of Favorites, Preview Image, and View URL **Note:** Unpublished views are not harvested. This is because the Tableau REST APIs do not return the objects if they are not published. |
-| Fields | Name, Identifier, Description |
-| Calculated fields | Name, Identifier, Description, Calculation Formula |
-| Dimensions | Name, Identifier, Description |
-| Measures | Name, Identifier, Description |
-| Metrics | Name, Identifier, Creator, Creation Date, Modified Date, Metrics UrlField Data Type, Field Format, Field Type |
-| Custom SQL tables | Name, Identifier, Description, Query |
+| Datasource fields | Name, Identifier, Description |
+| Calculated fields | Name, Identifier, Description, Calculation Formula, Category, Role, Type |
+| Group fields | Name, Identifier, Description, Category, Role, Type |
+| Bin fields | Name, Identifier, Description, Category, Role, Type, Bin Size |
+| Column fields | Name, Identifier, Description, Category, Role, Type |
+| Metrics | Name, Identifier, Description, Creator Email, Creator Name, Creator Tableau User, Metric Url |
+| Custom SQL tables | Name, Identifier, Description, SQL Query |
 | Embedded data sources | Name, Identifier |
 | Published data sources | Name, Identifier, Description |
 
@@ -55,20 +60,25 @@ By default, the harvested metadata includes catalog pages for the following reso
 
 | Resource page | Relationship |
 | ----- | ----- |
-| Databases | Schemas contained within database Tables contained within database |
-| Database tables | Views that use database table Schema containing database table Database containing the database table |
-| Database columns | Table that a database column is part of |
-| Projects | Views contained within the project Workbooks contained within the project Dashboards contained within project Subprojects contained within project |
-| Workbooks | Projects that contain workbook Data sources embedded within workbook Views contained within workbook |
-| Dashboards | Fields used by dashboard Projects containing dashboard Tables used by dashboard Workbooks containing dashboard Views embedded in dashboard |
-| Views | Fields used by view Projects containing view Tables used by view Workbooks containing view Dashboards which embed the view |
-| Fields | Data Sources containing field Views using field |
-| Calculated fields | Views that use the calculated field Data sources that contain the calculated field |
-| Dimensions | Data sources containing dimension Table related to dimension |
-| Measures | Data Source containing measure Views using measure |
-| Custom SQL tables | Views using Custom SQL table |
-| Embedded data sources | Fields contained within embedded data source Workbook embedding embedded data source |
-| Published data sources | Fields contained within published data source |
+| Databases | Schemas contained within the database Tables contained within the database |
+| Database Schemas | Tables contained within the schema |
+| Database tables | Schema containing database table Database containing the database table Views using the database table as a data source Column fields using the database table as a data source |
+| Database columns | Tables containing the database columns Column fields referencing the database columns |
+| Tableau Databases | Tableau Tableau Database table contained within the Tableau Database |
+| Tableau Database tables | Tableau Column contained within the Tableau Database table |
+| Tableau Database columns | Tableau Column Field referencing the  Tableau Database Column  |
+| Projects | Views contained within the project Workbooks contained within the project Dashboards contained within the project Subprojects contained within the project |
+| Workbooks | Projects that contain a workbook Data sources embedded within the workbook Views contained within the workbook |
+| Dashboards | Fields used by dashboard Custom SQL tables used by dashboard Projects containing dashboard Tables used by dashboard Workbooks containing dashboard Views embedded in dashboard |
+| Views | Fields used by view Custom SQL tables used by view Projects containing view Database Tables used by view Workbooks containing view Dashboards which embed the view Metrics presenting the view |
+| Datasource fields | Views that use the datasource field Dashboards that use the datasource field Data source fields containing the datasource field |
+| Calculated fields | Views that use the calculated field Dashboards that use the calculated field Data source containing the calculated field |
+| Group fields | Data sources containing group field |
+| Bin fields | Data sources containing group field |
+| Column fields | Data Source containing the column field Views that use the column field Dashboards that use the column field |
+| Custom SQL tables | Views using Custom SQL table Dashboards using Custom SQL table |
+| Embedded data sources | Fields contained within the embedded data source Workbook containing embedded data source |
+| Published data sources | Fields contained within the published data source |
 
 ## Lineage for Tableau
 
@@ -81,10 +91,14 @@ Eureka Explorer Lineage is available to all **Enterprise customers**. When the c
 | Object | Lineage available |
 | ----- | ----- |
 | Database columns and tables | Fields that use database columns and tables |
+| Projects | Databases, Database schemas, Database Tables, Database Columns, Workbooks, Views, Dashboards, custom SQL tables, and Datasources that projects contain |
 | Dashboards | Fields and tables that dashboards source their data from |
 | Views | Fields and tables that views source their data from |
 | Fields | Columns, tables, and other fields that a field uses its data from |
-| Embedded data sources | Published data sources |
+| Tableau Database tables | Tableau Databases containing the Tableau Database table |
+| Tableau Database columns | Fields that reference the Tableau Database column,Tableau Database tables containing the Tableau Database column |
+| Published data sources | Embedded data sources that were derived from published data source  |
+| Embedded data sources | Database tables and Database columns that the Embedded data source uses data from |
 
 ### Supported cross-system lineage
 
@@ -284,7 +298,7 @@ Note that these are just sample commands for showing the syntax. You must genera
 Sample command with username and password parameters.  
 docker run \-it \--rm \--mount type=bind,source=${HOME}/dwcc,target=/dwcc-output \\  
   \--mount type=bind,source=${HOME}/dwcc,target=/app/log datadotworld/dwcc:2.124 \\  
-  catalog-tableau \--agent=8bank-catalog-sources \--site=solutions \\  
+  catalog-tableau-preview \--agent=8bank-catalog-sources \--site=solutions \\  
   \--no-log-upload=false \--upload=true \--api-token=${DW\_AUTH\_TOKEN} \\  
   \--name=8bank-catalog-sources-collection \--output=/dwcc-output \\  
   \--upload-location=ddw-catalogs \--tableau-username=8bank-user \--tableau-password=${DW\_TABLEAU\_PASSWORD} \\
